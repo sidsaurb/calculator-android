@@ -3,6 +3,7 @@ package com.example.siddhant.calculator_cs654;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -10,10 +11,12 @@ import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Base64;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.ViewGroup;
+import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
@@ -30,8 +33,10 @@ import java.net.URLEncoder;
 public class MainActivity extends AppCompatActivity {
 
     TextView currentTextView, previousTextView, infoTextView;
+    HorizontalScrollView ctvScrollBar, ptvScrollBar;
     ProgressBar progressBar;
     boolean isProcessingRequest = false;
+    private Handler backSpacingHandler = new Handler();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,24 +45,47 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         currentTextView = (TextView) findViewById(R.id.currentTextView);
+        currentTextView.setText("12346685101566428428762492720487294862972458722494939392982498458492");
         currentTextView.setSelected(true);
         previousTextView = (TextView) findViewById(R.id.previousTextView);
         infoTextView = (TextView) findViewById(R.id.infoTextView);
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
+        ctvScrollBar = (HorizontalScrollView) findViewById(R.id.ctvScrollBar);
+        ptvScrollBar = (HorizontalScrollView) findViewById(R.id.ptvScrollBar);
         LinearLayout parent = (LinearLayout) findViewById(R.id.dockLinerLayout);
         setGenericListeners(parent);
         setListners();
     }
 
+    boolean flag = true;
+
     private void setListners() {
-        RelativeLayout backSpaceRelativeLayout = (RelativeLayout) findViewById(R.id.backSpaceRelativeLayout);
-        backSpaceRelativeLayout.setOnClickListener(new View.OnClickListener() {
+        final RelativeLayout backSpaceRelativeLayout = (RelativeLayout) findViewById(R.id.backSpaceRelativeLayout);
+//        backSpaceRelativeLayout.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                String str = currentTextView.getText().toString();
+//                int len = str.length();
+//                if (len > 0)
+//                    currentTextView.setText(str.substring(0, len - 1).trim());
+//            }
+//        });
+        backSpaceRelativeLayout.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
-            public void onClick(View v) {
-                String str = currentTextView.getText().toString();
-                int len = str.length();
-                if (len > 0)
-                    currentTextView.setText(str.substring(0, len - 1).trim());
+            public boolean onLongClick(View v) {
+                flag = true;
+                backSpacingHandler.post(new BackSpaceUpdater());
+                return false;
+            }
+        });
+        backSpaceRelativeLayout.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if ((event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL)
+                        && flag) {
+                    flag = false;
+                }
+                return false;
             }
         });
         currentTextView.addTextChangedListener(new TextWatcher() {
@@ -69,6 +97,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 infoTextView.setText("");
+                ctvScrollBar.fullScroll(View.FOCUS_RIGHT);
             }
 
             @Override
@@ -76,6 +105,40 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+        previousTextView.addTextChangedListener(
+                new TextWatcher() {
+                    @Override
+                    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+                    }
+
+                    @Override
+                    public void onTextChanged(CharSequence s, int start, int before, int count) {
+                        ptvScrollBar.fullScroll(View.FOCUS_RIGHT);
+                    }
+
+                    @Override
+                    public void afterTextChanged(Editable s) {
+
+                    }
+                }
+        );
+    }
+
+    class BackSpaceUpdater implements Runnable {
+        public void run() {
+            if (flag) {
+                processBackSpace();
+                backSpacingHandler.postDelayed(new BackSpaceUpdater(), 200);
+            }
+        }
+    }
+
+    private void processBackSpace() {
+        String str = currentTextView.getText().toString();
+        int len = str.length();
+        if (len > 0)
+            currentTextView.setText(str.substring(0, len - 1).trim());
     }
 
     private void setGenericListeners(ViewGroup parent) {
