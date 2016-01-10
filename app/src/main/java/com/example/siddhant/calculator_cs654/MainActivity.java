@@ -1,14 +1,20 @@
 package com.example.siddhant.calculator_cs654;
 
+import android.content.Context;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Vibrator;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
+import android.text.Spannable;
+import android.text.SpannableString;
 import android.text.TextWatcher;
 import android.util.Base64;
 import android.view.MotionEvent;
@@ -16,6 +22,9 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -37,6 +46,8 @@ public class MainActivity extends AppCompatActivity {
     ProgressBar progressBar;
     boolean isProcessingRequest = false;
     private Handler backSpacingHandler = new Handler();
+    Typeface typeface;
+    Vibrator vibrator;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,8 +55,15 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        ActionBar actionBar = getSupportActionBar();
+        typeface = Typeface.createFromAsset(getAssets(), "proxima.otf");
+        if (actionBar != null) {
+            SpannableString s = new SpannableString("Calculator");
+            s.setSpan(new TypefaceSpan(typeface), 0, s.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            actionBar.setTitle(s);
+        }
         currentTextView = (TextView) findViewById(R.id.currentTextView);
-        currentTextView.setText("12346685101566428428762492720487294862972458722494939392982498458492");
+//        currentTextView.setText("123466851015664284287624927204872948629");
         currentTextView.setSelected(true);
         previousTextView = (TextView) findViewById(R.id.previousTextView);
         infoTextView = (TextView) findViewById(R.id.infoTextView);
@@ -53,23 +71,41 @@ public class MainActivity extends AppCompatActivity {
         ctvScrollBar = (HorizontalScrollView) findViewById(R.id.ctvScrollBar);
         ptvScrollBar = (HorizontalScrollView) findViewById(R.id.ptvScrollBar);
         LinearLayout parent = (LinearLayout) findViewById(R.id.dockLinerLayout);
+        currentTextView.setTypeface(typeface);
+        previousTextView.setTypeface(typeface);
+        infoTextView.setTypeface(typeface);
         setGenericListeners(parent);
-        setListners();
+        setListeners();
+        vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
     }
 
     boolean flag = true;
 
-    private void setListners() {
+    TextView specialTextView1, specialTextView2, specialTextView3, specialTextView4, specialTextView5,
+            specialTextView6, specialTextView7, specialTextView8, specialTextView9, specialTextView10;
+
+    private void setListeners() {
+        specialTextView1 = (TextView) findViewById(R.id.specialTextView1);
+        specialTextView2 = (TextView) findViewById(R.id.specialTextView2);
+        specialTextView3 = (TextView) findViewById(R.id.specialTextView3);
+        specialTextView4 = (TextView) findViewById(R.id.specialTextView4);
+        specialTextView5 = (TextView) findViewById(R.id.specialTextView5);
+        specialTextView6 = (TextView) findViewById(R.id.specialTextView6);
+        specialTextView7 = (TextView) findViewById(R.id.specialTextView7);
+        specialTextView8 = (TextView) findViewById(R.id.specialTextView8);
+        specialTextView9 = (TextView) findViewById(R.id.specialTextView9);
+        specialTextView10 = (TextView) findViewById(R.id.specialTextView10);
         final RelativeLayout backSpaceRelativeLayout = (RelativeLayout) findViewById(R.id.backSpaceRelativeLayout);
-//        backSpaceRelativeLayout.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                String str = currentTextView.getText().toString();
-//                int len = str.length();
-//                if (len > 0)
-//                    currentTextView.setText(str.substring(0, len - 1).trim());
-//            }
-//        });
+        backSpaceRelativeLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String str = currentTextView.getText().toString();
+                int len = str.length();
+                if (len > 0)
+                    currentTextView.setText(str.substring(0, len - 1).trim());
+                vibrator.vibrate(50);
+            }
+        });
         backSpaceRelativeLayout.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
@@ -97,7 +133,30 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 infoTextView.setText("");
-                ctvScrollBar.fullScroll(View.FOCUS_RIGHT);
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                ctvScrollBar.postDelayed(new Runnable() {
+                    public void run() {
+                        ctvScrollBar.fullScroll(HorizontalScrollView.FOCUS_RIGHT);
+                    }
+                }, 100L);
+            }
+        });
+        previousTextView.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                ptvScrollBar.postDelayed(new Runnable() {
+                    public void run() {
+                        ptvScrollBar.fullScroll(HorizontalScrollView.FOCUS_RIGHT);
+                    }
+                }, 100L);
             }
 
             @Override
@@ -105,31 +164,104 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-        previousTextView.addTextChangedListener(
-                new TextWatcher() {
-                    @Override
-                    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
 
-                    }
+        RelativeLayout moreOptionsRelativeLayout = (RelativeLayout) findViewById(R.id.moreOptionsRelativeLayout);
+        moreOptionsRelativeLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                switchMoreOptionTextViews();
+            }
+        });
+    }
 
-                    @Override
-                    public void onTextChanged(CharSequence s, int start, int before, int count) {
-                        ptvScrollBar.fullScroll(View.FOCUS_RIGHT);
-                    }
-
-                    @Override
-                    public void afterTextChanged(Editable s) {
-
-                    }
-                }
-        );
+    private void switchMoreOptionTextViews() {
+        if (specialTextView1.getText().toString().equals("sqrt")) {
+            specialTextView1.setText("\u00b1");
+        } else {
+            specialTextView1.setText("sqrt");
+        }
+        if (specialTextView2.getText().toString().equals("log")) {
+            specialTextView2.setText("1/x");
+        } else {
+            specialTextView2.setText("log");
+        }
+        if (specialTextView3.getText().toString().equals("sin")) {
+            specialTextView3.setText("sinh");
+        } else {
+            specialTextView3.setText("sin");
+        }
+        if (specialTextView4.getText().toString().equals("cos")) {
+            specialTextView4.setText("cosh");
+        } else {
+            specialTextView4.setText("cos");
+        }
+        if (specialTextView5.getText().toString().equals("tan")) {
+            specialTextView5.setText("tanh");
+        } else {
+            specialTextView5.setText("tan");
+        }
+        if (specialTextView6.getText().toString().equals("x^2")) {
+            specialTextView6.setText("x^3");
+        } else {
+            specialTextView6.setText("x^2");
+        }
+        if (specialTextView7.getText().toString().equals("10^x")) {
+            specialTextView7.setText("abc");
+        } else {
+            specialTextView7.setText("10^x");
+        }
+        if (specialTextView8.getText().toString().equals("asin")) {
+            specialTextView8.setText("asinh");
+        } else {
+            specialTextView8.setText("asin");
+        }
+        if (specialTextView9.getText().toString().equals("acos")) {
+            specialTextView9.setText("acosh");
+        } else {
+            specialTextView9.setText("acos");
+        }
+        if (specialTextView10.getText().toString().equals("atan")) {
+            specialTextView10.setText("atanh");
+        } else {
+            specialTextView10.setText("atan");
+        }
+        Animation an1 = AnimationUtils.loadAnimation(this, R.anim.up_from_bottom);
+        an1.setStartOffset(125);
+        Animation an2 = AnimationUtils.loadAnimation(this, R.anim.up_from_bottom);
+        an2.setStartOffset(150);
+        Animation an3 = AnimationUtils.loadAnimation(this, R.anim.up_from_bottom);
+        an3.setStartOffset(175);
+        Animation an4 = AnimationUtils.loadAnimation(this, R.anim.up_from_bottom);
+        an4.setStartOffset(200);
+        Animation an5 = AnimationUtils.loadAnimation(this, R.anim.up_from_bottom);
+        an5.setStartOffset(225);
+        Animation an6 = AnimationUtils.loadAnimation(this, R.anim.up_from_bottom);
+        an6.setStartOffset(0);
+        Animation an7 = AnimationUtils.loadAnimation(this, R.anim.up_from_bottom);
+        an7.setStartOffset(25);
+        Animation an8 = AnimationUtils.loadAnimation(this, R.anim.up_from_bottom);
+        an8.setStartOffset(50);
+        Animation an9 = AnimationUtils.loadAnimation(this, R.anim.up_from_bottom);
+        an9.setStartOffset(75);
+        Animation an10 = AnimationUtils.loadAnimation(this, R.anim.up_from_bottom);
+        an10.setStartOffset(100);
+        specialTextView1.startAnimation(an1);
+        specialTextView2.startAnimation(an2);
+        specialTextView3.startAnimation(an3);
+        specialTextView4.startAnimation(an4);
+        specialTextView5.startAnimation(an5);
+        specialTextView6.startAnimation(an6);
+        specialTextView7.startAnimation(an7);
+        specialTextView8.startAnimation(an8);
+        specialTextView9.startAnimation(an9);
+        specialTextView10.startAnimation(an10);
     }
 
     class BackSpaceUpdater implements Runnable {
         public void run() {
             if (flag) {
                 processBackSpace();
-                backSpacingHandler.postDelayed(new BackSpaceUpdater(), 200);
+                backSpacingHandler.postDelayed(new BackSpaceUpdater(), 100);
             }
         }
     }
@@ -139,36 +271,10 @@ public class MainActivity extends AppCompatActivity {
         int len = str.length();
         if (len > 0)
             currentTextView.setText(str.substring(0, len - 1).trim());
+        vibrator.vibrate(50);
     }
 
     private void setGenericListeners(ViewGroup parent) {
-//        TextView specialTextView1 = (TextView) findViewById(R.id.specialTextView1);
-//        TextView specialTextView2 = (TextView) findViewById(R.id.specialTextView2);
-//        TextView specialTextView3 = (TextView) findViewById(R.id.specialTextView3);
-//        TextView specialTextView4 = (TextView) findViewById(R.id.specialTextView4);
-//        TextView specialTextView5 = (TextView) findViewById(R.id.specialTextView5);
-//        TextView CETextView = (TextView) findViewById(R.id.CETextView);
-//        TextView CTextView = (TextView) findViewById(R.id.CETextView);
-//        TextView DivideTextView = (TextView) findViewById(R.id.CETextView);
-//        TextView PiTextView = (TextView) findViewById(R.id.CETextView);
-//        TextView SevenTextView = (TextView) findViewById(R.id.CETextView);
-//        TextView EightTextView = (TextView) findViewById(R.id.CETextView);
-//        TextView NineTextView = (TextView) findViewById(R.id.CETextView);
-//        TextView MultiplyTextView = (TextView) findViewById(R.id.CETextView);
-//        TextView NegateTextView = (TextView) findViewById(R.id.CETextView);
-//        TextView FourTextView = (TextView) findViewById(R.id.CETextView);
-//        TextView FiveTextView = (TextView) findViewById(R.id.CETextView);
-//        TextView SixTextView = (TextView) findViewById(R.id.CETextView);
-//        TextView MinusTextView = (TextView) findViewById(R.id.CETextView);
-//        TextView AbsTextView = (TextView) findViewById(R.id.CETextView);
-//        TextView OneTextView = (TextView) findViewById(R.id.CETextView);
-//        TextView TwoTextView = (TextView) findViewById(R.id.CETextView);
-//        TextView ThreeTextView = (TextView) findViewById(R.id.CETextView);
-//        TextView AddTextView = (TextView) findViewById(R.id.CETextView);
-//        TextView LeftBracketTextView = (TextView) findViewById(R.id.CETextView);
-//        TextView RightBracketTextView = (TextView) findViewById(R.id.CETextView);
-//        TextView ZeroBracketTextView = (TextView) findViewById(R.id.CETextView);
-
         for (int i = parent.getChildCount() - 1; i >= 0; i--) {
             final View child = parent.getChildAt(i);
             if (child instanceof ViewGroup) {
@@ -176,6 +282,7 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 if (child != null && child instanceof TextView) {
                     child.setOnClickListener(listener);
+                    ((TextView) child).setTypeface(typeface);
                 }
             }
         }
@@ -187,15 +294,16 @@ public class MainActivity extends AppCompatActivity {
         public void onClick(View v) {
             if (isProcessingRequest)
                 return;
+            vibrator.vibrate(50);
             TextView tv = (TextView) v;
             String str = tv.getText().toString();
             String str1 = currentTextView.getText().toString();
             switch (str) {
-                case "CE":
+                case "C":
                     currentTextView.setText("");
                     previousTextView.setText("");
                     break;
-                case "C":
+                case "CE":
                     if (previousTextView.getText().length() != 0) {
                         currentTextView.setText(previousTextView.getText());
                         previousTextView.setText("");
@@ -221,6 +329,12 @@ public class MainActivity extends AppCompatActivity {
                 case "atan":
                 case "acos":
                 case "asin":
+                case "tanh":
+                case "cosh":
+                case "sinh":
+                case "atanh":
+                case "acosh":
+                case "asinh":
                 case "log":
                 case "sqrt":
                     currentTextView.setText(str1.trim() + " " + str + " (");
@@ -262,10 +376,21 @@ public class MainActivity extends AppCompatActivity {
                         currentTextView.setText(str2 + " " + str);
                     }
                     break;
+                case "x^2":
+                    currentTextView.setText(str1.trim() + " ^ 2");
+                    break;
+                case "x^3":
+                    currentTextView.setText(str1.trim() + " ^ 3");
+                    break;
+                case "10^x":
+                    currentTextView.setText(str1.trim() + " ( 10 ^");
+                    break;
+                case "1/x":
+                    currentTextView.setText(str1.trim() + " ( 1 /");
+                    break;
                 default:
                     currentTextView.setText(str1.trim() + " " + str);
                     break;
-
             }
         }
     };
