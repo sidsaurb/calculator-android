@@ -1,14 +1,12 @@
 package com.example.siddhant.calculator_cs654;
 
 import android.content.Context;
-import android.graphics.BitmapFactory;
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Vibrator;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -16,13 +14,11 @@ import android.text.Editable;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.TextWatcher;
-import android.util.Base64;
+import android.text.style.TtsSpan;
+import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.HorizontalScrollView;
@@ -30,14 +26,17 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.gson.Gson;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.math.BigDecimal;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.text.DecimalFormat;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -48,6 +47,13 @@ public class MainActivity extends AppCompatActivity {
     private Handler backSpacingHandler = new Handler();
     Typeface typeface;
     Vibrator vibrator;
+    int selectedMode = 0;
+    boolean flag = true, requestInvalidated = false;
+    RelativeLayout moreOptionsRelativeLayout;
+    String copiedText = "";
+    DatabaseHelper myDbHelper;
+    Toast toast;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,7 +69,6 @@ public class MainActivity extends AppCompatActivity {
             actionBar.setTitle(s);
         }
         currentTextView = (TextView) findViewById(R.id.currentTextView);
-//        currentTextView.setText("123466851015664284287624927204872948629");
         currentTextView.setSelected(true);
         previousTextView = (TextView) findViewById(R.id.previousTextView);
         infoTextView = (TextView) findViewById(R.id.infoTextView);
@@ -74,12 +79,13 @@ public class MainActivity extends AppCompatActivity {
         currentTextView.setTypeface(typeface);
         previousTextView.setTypeface(typeface);
         infoTextView.setTypeface(typeface);
+        moreOptionsRelativeLayout = (RelativeLayout) findViewById(R.id.moreOptionsRelativeLayout);
+        vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        myDbHelper = DatabaseHelper.getInstance(MainActivity.this);
         setGenericListeners(parent);
         setListeners();
-        vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
     }
 
-    boolean flag = true;
 
     TextView specialTextView1, specialTextView2, specialTextView3, specialTextView4, specialTextView5,
             specialTextView6, specialTextView7, specialTextView8, specialTextView9, specialTextView10;
@@ -165,16 +171,63 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        RelativeLayout moreOptionsRelativeLayout = (RelativeLayout) findViewById(R.id.moreOptionsRelativeLayout);
         moreOptionsRelativeLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                vibrator.vibrate(50);
                 switchMoreOptionTextViews();
+                if (selectedMode == 0) {
+                    selectedMode = 1;
+                    moreOptionsRelativeLayout.setBackgroundColor(getResources().getColor(R.color.colorPrimaryDark));
+                } else {
+                    selectedMode = 0;
+                    moreOptionsRelativeLayout.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
+                }
+            }
+        });
+        RelativeLayout copyRelativeLayout = (RelativeLayout) findViewById(R.id.copyRelativeLayout);
+        RelativeLayout pasteRelativeLayout = (RelativeLayout) findViewById(R.id.pasteRelativeLayout);
+        RelativeLayout historyRelativeLayout = (RelativeLayout) findViewById(R.id.historyRelativeLayout);
+        copyRelativeLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                copiedText = currentTextView.getText().toString();
+                if (toast != null) {
+                    toast.cancel();
+                }
+                toast = Toast.makeText(MainActivity.this, "Copied", Toast.LENGTH_SHORT);
+                toast.show();
+                vibrator.vibrate(50);
+            }
+        });
+        pasteRelativeLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!copiedText.isEmpty()) {
+                    currentTextView.append(copiedText);
+                } else {
+                    if (toast != null) {
+                        toast.cancel();
+                    }
+                    toast = Toast.makeText(MainActivity.this, "Noting to paste", Toast.LENGTH_SHORT);
+                    toast.show();
+                    vibrator.vibrate(50);
+                }
+            }
+        });
+        historyRelativeLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(MainActivity.this, HistoryActivity.class);
+                startActivityForResult(i, 2);
+                vibrator.vibrate(50);
             }
         });
     }
 
+
     private void switchMoreOptionTextViews() {
+
         if (specialTextView1.getText().toString().equals("sqrt")) {
             specialTextView1.setText("\u00b1");
         } else {
@@ -206,7 +259,7 @@ public class MainActivity extends AppCompatActivity {
             specialTextView6.setText("x^2");
         }
         if (specialTextView7.getText().toString().equals("10^x")) {
-            specialTextView7.setText("abc");
+            specialTextView7.setText("exp");
         } else {
             specialTextView7.setText("10^x");
         }
@@ -286,7 +339,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }
-
     }
 
     private View.OnClickListener listener = new View.OnClickListener() {
@@ -318,7 +370,12 @@ public class MainActivity extends AppCompatActivity {
                     currentTextView.setText(str1.trim() + " abs (");
                     break;
                 case "=":
-                    computeResult(str1);
+                    if (str1.length() != 0) {
+                        computeResult(str1);
+                    } else {
+                        infoTextView.setText("Please enter some input!");
+                        infoTextView.setTextColor(Color.parseColor("#F44336"));
+                    }
                     break;
                 case "\u03c0":
                     currentTextView.setText(str1.trim() + " pi");
@@ -337,6 +394,7 @@ public class MainActivity extends AppCompatActivity {
                 case "asinh":
                 case "log":
                 case "sqrt":
+                case "exp":
                     currentTextView.setText(str1.trim() + " " + str + " (");
                     break;
                 case "+":
@@ -388,6 +446,9 @@ public class MainActivity extends AppCompatActivity {
                 case "1/x":
                     currentTextView.setText(str1.trim() + " ( 1 /");
                     break;
+                case "x^y":
+                    currentTextView.setText(str1.trim() + " ^");
+                    break;
                 default:
                     currentTextView.setText(str1.trim() + " " + str);
                     break;
@@ -407,33 +468,47 @@ public class MainActivity extends AppCompatActivity {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            if (response.success) {
-                                previousTextView.setText(expression);
-                                currentTextView.setText(response.result);
-                                progressBar.setVisibility(View.GONE);
-                                if (response.cacheHit) {
-                                    infoTextView.setText("Cache hit!");
-                                    infoTextView.setTextColor(Color.parseColor("#009688"));
+                            if (!requestInvalidated) {
+                                if (response.success) {
+                                    previousTextView.setText(expression);
+                                    if (!response.result.equals("NaN") && !response.result.equals("Infinity")) {
+                                        Double result = Double.parseDouble(response.result);
+                                        DecimalFormat format = new DecimalFormat("0.########");
+                                        response.result = format.format(result);
+                                    }
+                                    currentTextView.setText(response.result);
+                                    myDbHelper.addPair(new DatabaseClass(expression, response.result));
+                                    progressBar.setVisibility(View.GONE);
+                                    if (response.cacheHit) {
+                                        infoTextView.setText("Cache hit!");
+                                        infoTextView.setTextColor(Color.parseColor("#009688"));
+                                    } else {
+                                        infoTextView.setText("Cache miss!");
+                                        infoTextView.setTextColor(Color.parseColor("#FF5722"));
+                                    }
                                 } else {
-                                    infoTextView.setText("Cache miss!");
-                                    infoTextView.setTextColor(Color.parseColor("#FF5722"));
+                                    progressBar.setVisibility(View.GONE);
+                                    infoTextView.setText(response.error);
+                                    infoTextView.setTextColor(Color.parseColor("#F44336"));
                                 }
+                                isProcessingRequest = false;
                             } else {
-                                progressBar.setVisibility(View.GONE);
-                                infoTextView.setText(response.error);
-                                infoTextView.setTextColor(Color.parseColor("#F44336"));
+                                requestInvalidated = false;
                             }
-                            isProcessingRequest = false;
                         }
                     });
                 } else {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            progressBar.setVisibility(View.GONE);
-                            infoTextView.setText("Can't connect!");
-                            infoTextView.setTextColor(Color.parseColor("#F44336"));
-                            isProcessingRequest = false;
+                            if (!requestInvalidated) {
+                                progressBar.setVisibility(View.GONE);
+                                infoTextView.setText("Can't connect!");
+                                infoTextView.setTextColor(Color.parseColor("#F44336"));
+                                isProcessingRequest = false;
+                            } else {
+                                requestInvalidated = false;
+                            }
                         }
                     });
                 }
@@ -469,5 +544,68 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         return null;
+    }
+
+    Handler preventingGettingStuckHandler = new Handler();
+
+    class preventingGettingStuck implements Runnable {
+
+        @Override
+        public void run() {
+            progressBar.setVisibility(View.GONE);
+            infoTextView.setText("Can't connect");
+            infoTextView.setTextColor(Color.parseColor("#F44336"));
+            isProcessingRequest = false;
+        }
+    }
+
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putString("currentText", currentTextView.getText().toString());
+        outState.putString("previousText", previousTextView.getText().toString());
+        outState.putString("infoText", infoTextView.getText().toString());
+        outState.putString("copiedText", copiedText);
+        outState.putBoolean("isProcessingRequest", isProcessingRequest);
+        outState.putBoolean("flag", flag);
+        outState.putInt("selectedMode", selectedMode);
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        currentTextView.setText(savedInstanceState.getString("currentText"));
+        previousTextView.setText(savedInstanceState.getString("previousText"));
+        infoTextView.setText(savedInstanceState.getString("infoText"));
+        isProcessingRequest = savedInstanceState.getBoolean("isProcessingRequest");
+        copiedText = savedInstanceState.getString("copiedText");
+        if (isProcessingRequest) {
+            progressBar.setVisibility(View.VISIBLE);
+            preventingGettingStuckHandler.postDelayed(new preventingGettingStuck(), 2000);
+        }
+        flag = savedInstanceState.getBoolean("flag");
+        selectedMode = savedInstanceState.getInt("selectedMode");
+        if (selectedMode == 1) {
+            switchMoreOptionTextViews();
+            moreOptionsRelativeLayout.setBackgroundColor(getResources().getColor(R.color.colorPrimaryDark));
+        }
+        super.onRestoreInstanceState(savedInstanceState);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 2 && resultCode == RESULT_OK) {
+            String query = data.getStringExtra("previous");
+            String response = data.getStringExtra("current");
+            previousTextView.setText(query);
+            currentTextView.setText(response);
+            infoTextView.setText("");
+            progressBar.setVisibility(View.GONE);
+            if (isProcessingRequest) {
+                requestInvalidated = true;
+            }
+            isProcessingRequest = false;
+        }
     }
 }
