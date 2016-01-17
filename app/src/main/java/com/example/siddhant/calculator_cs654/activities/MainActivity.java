@@ -1,4 +1,4 @@
-package com.example.siddhant.calculator_cs654;
+package com.example.siddhant.calculator_cs654.activities;
 
 import android.content.Context;
 import android.content.Intent;
@@ -14,8 +14,6 @@ import android.text.Editable;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.TextWatcher;
-import android.text.style.TtsSpan;
-import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,14 +26,13 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.gson.Gson;
+import com.example.siddhant.calculator_cs654.R;
+import com.example.siddhant.calculator_cs654.webRequest.HttpGetRequest;
+import com.example.siddhant.calculator_cs654.webRequest.Response;
+import com.example.siddhant.calculator_cs654.helperClasses.TypefaceSpan;
+import com.example.siddhant.calculator_cs654.databaseClasses.DatabaseClass;
+import com.example.siddhant.calculator_cs654.databaseClasses.DatabaseHelper;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.math.BigDecimal;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLEncoder;
 import java.text.DecimalFormat;
 
 public class MainActivity extends AppCompatActivity {
@@ -478,7 +475,7 @@ public class MainActivity extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                final Response response = makeHttpGetRequest(expression);
+                final Response response = HttpGetRequest.makeHttpGetRequest(expression);
                 if (response != null) {
                     runOnUiThread(new Runnable() {
                         @Override
@@ -529,36 +526,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }).start();
-    }
-
-    private Response makeHttpGetRequest(String expression) {
-        HttpURLConnection conn = null;
-        try {
-            String parameters = URLEncoder.encode(expression.replaceAll("\\s+", ""), "UTF-8");
-            URL url = new URL("http://107.167.178.155:8000/eval/" + parameters);
-            conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("GET");
-            conn.setRequestProperty("platform", "android");
-            conn.setRequestProperty("version", BuildConfig.VERSION_NAME);
-            String line;
-            InputStreamReader isr = new InputStreamReader(
-                    conn.getInputStream());
-            BufferedReader reader = new BufferedReader(isr);
-            StringBuilder sb = new StringBuilder();
-            while ((line = reader.readLine()) != null) {
-                sb.append(line).append("\n");
-            }
-            String response = sb.toString();
-            Response myResponse = new Gson().fromJson(response, Response.class);
-            isr.close();
-            reader.close();
-            return myResponse;
-        } catch (Exception ex) {
-            if (conn != null) {
-                conn.disconnect();
-            }
-        }
-        return null;
     }
 
     Handler preventingGettingStuckHandler = new Handler();

@@ -1,12 +1,10 @@
-package com.example.siddhant.calculator_cs654;
+package com.example.siddhant.calculator_cs654.databaseClasses;
 
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-
-import com.google.gson.GsonBuilder;
 
 import java.util.ArrayList;
 

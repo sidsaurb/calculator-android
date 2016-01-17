@@ -1,4 +1,4 @@
-package com.example.siddhant.calculator_cs654;
+package com.example.siddhant.calculator_cs654.databaseClasses;
 
 /**
  * Created by Siddhant Saurabh on 1/10/2016.

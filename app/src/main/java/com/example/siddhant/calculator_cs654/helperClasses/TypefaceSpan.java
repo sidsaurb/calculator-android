@@ -1,4 +1,4 @@
-package com.example.siddhant.calculator_cs654;
+package com.example.siddhant.calculator_cs654.helperClasses;
 
 import android.graphics.Paint;
 import android.graphics.Typeface;

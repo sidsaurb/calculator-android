@@ -1,4 +1,4 @@
-package com.example.siddhant.calculator_cs654;
+package com.example.siddhant.calculator_cs654.adapters;
 
 import android.content.Context;
 import android.graphics.Typeface;
@@ -8,8 +8,10 @@ import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ArrayAdapter;
-import android.widget.HorizontalScrollView;
 import android.widget.TextView;
+
+import com.example.siddhant.calculator_cs654.R;
+import com.example.siddhant.calculator_cs654.databaseClasses.DatabaseClass;
 
 import java.util.ArrayList;
 

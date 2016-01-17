@@ -1,4 +1,4 @@
-package com.example.siddhant.calculator_cs654;
+package com.example.siddhant.calculator_cs654.activities;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -17,7 +17,11 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import java.util.List;
+import com.example.siddhant.calculator_cs654.adapters.HistoryAdapter;
+import com.example.siddhant.calculator_cs654.R;
+import com.example.siddhant.calculator_cs654.helperClasses.TypefaceSpan;
+import com.example.siddhant.calculator_cs654.databaseClasses.DatabaseClass;
+import com.example.siddhant.calculator_cs654.databaseClasses.DatabaseHelper;
 
 public class HistoryActivity extends AppCompatActivity {
 
