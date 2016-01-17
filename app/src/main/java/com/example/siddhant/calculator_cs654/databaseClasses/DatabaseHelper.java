@@ -13,7 +13,6 @@ import java.util.ArrayList;
  */
 
 public class DatabaseHelper extends SQLiteOpenHelper {
-    private Context myContext;
     private static final String DB_NAME = "history.db";
     private static final String TABLE_HISTORY = "history";
 
@@ -28,7 +27,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     private DatabaseHelper(Context context) {
         super(context, DB_NAME, null, DATABASE_VERSION);
-        this.myContext = context;
     }
 
     private static volatile DatabaseHelper mInstance = null;
@@ -61,7 +59,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(COLUMN_RESPONSE, chain.response);
         SQLiteDatabase db = this.getWritableDatabase();
         db.insert(TABLE_HISTORY, null, values);
-
     }
 
     public ArrayList<DatabaseClass> getAllHistory() {
