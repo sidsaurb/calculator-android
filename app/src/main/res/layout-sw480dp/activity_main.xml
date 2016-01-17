@@ -45,8 +45,8 @@
                     android:layout_weight="1"
                     android:background="@drawable/button_background_light"
                     android:clickable="true"
-                    android:paddingLeft="10dp"
-                    android:paddingRight="10dp">
+                    android:paddingLeft="15dp"
+                    android:paddingRight="15dp">
 
                     <ImageView
                         android:layout_width="30dp"
@@ -62,8 +62,8 @@
                     android:layout_weight="1"
                     android:background="@drawable/button_background_light"
                     android:clickable="true"
-                    android:paddingLeft="10dp"
-                    android:paddingRight="10dp">
+                    android:paddingLeft="15dp"
+                    android:paddingRight="15dp">
 
                     <ImageView
                         android:layout_width="25dp"
@@ -79,8 +79,8 @@
                     android:layout_weight="1"
                     android:background="@drawable/button_background_light"
                     android:clickable="true"
-                    android:paddingLeft="10dp"
-                    android:paddingRight="10dp">
+                    android:paddingLeft="15dp"
+                    android:paddingRight="15dp">
 
                     <ImageView
                         android:layout_width="25dp"
@@ -134,7 +134,7 @@
                         android:gravity="center"
                         android:hint="0"
                         android:text=""
-                        android:textSize="40sp" />
+                        android:textSize="50sp" />
                 </HorizontalScrollView>
 
                 <RelativeLayout
@@ -162,7 +162,7 @@
                         android:gravity="center"
                         android:text=""
                         android:textColor="@android:color/holo_red_dark"
-                        android:textSize="15sp" />
+                        android:textSize="20sp" />
                 </RelativeLayout>
             </LinearLayout>
         </LinearLayout>
@@ -171,7 +171,7 @@
             layout="@layout/calculator_pad"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="2.7" />
+            android:layout_weight="3" />
 
     </LinearLayout>
 

@@ -6,4 +6,5 @@
     <color name="dockColor">#3F51B5</color>
     <!--<color name="dockColor">#7986CB</color>-->
     <color name="dockColorLight">#5C6BC0</color>
+    <color name="colorVeryLight">#C5CAE9</color>
 </resources>

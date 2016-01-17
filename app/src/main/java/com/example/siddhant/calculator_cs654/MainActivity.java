@@ -191,12 +191,27 @@ public class MainActivity extends AppCompatActivity {
         copyRelativeLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                copiedText = currentTextView.getText().toString();
-                if (toast != null) {
-                    toast.cancel();
+                if (currentTextView.getText().toString().equals("")) {
+                    if (toast != null) {
+                        toast.cancel();
+                    }
+                    toast = Toast.makeText(MainActivity.this, "Nothing to copy", Toast.LENGTH_SHORT);
+                    toast.show();
+                } else {
+                    copiedText = currentTextView.getText().toString();
+                    if (toast != null) {
+                        toast.cancel();
+                    }
+                    toast = Toast.makeText(MainActivity.this, "Copied", Toast.LENGTH_SHORT);
+                    toast.show();
+                    currentTextView.setBackgroundColor(getResources().getColor(R.color.colorVeryLight));
+                    currentTextView.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            currentTextView.setBackgroundColor(getResources().getColor(android.R.color.transparent));
+                        }
+                    }, 100);
                 }
-                toast = Toast.makeText(MainActivity.this, "Copied", Toast.LENGTH_SHORT);
-                toast.show();
                 vibrator.vibrate(50);
             }
         });
@@ -211,8 +226,8 @@ public class MainActivity extends AppCompatActivity {
                     }
                     toast = Toast.makeText(MainActivity.this, "Noting to paste", Toast.LENGTH_SHORT);
                     toast.show();
-                    vibrator.vibrate(50);
                 }
+                vibrator.vibrate(50);
             }
         });
         historyRelativeLayout.setOnClickListener(new View.OnClickListener() {
